@@ -99,6 +99,8 @@ split_ok:
 error:
 	call exit
 end:
+	cmp $0, %edx
+	je error
 	push $str3
 	call itoa
 	push $str3
@@ -150,13 +152,38 @@ inf_to_post_notnb:
 	je inf_to_post_op
 	cmpb $' ', (%ecx)
 	je inf_to_post_output
+	cmpb $'(', (%ecx)
+	je inf_to_post_op_end
+	cmpb $')', (%ecx)
+	je inf_to_post_rp_init
 	jmp inf_to_post_error
 
+inf_to_post_rp_init:
+	inc %ecx
+	jmp inf_to_post_rp
+	
+inf_to_post_rp:
+	cmp $0, %eax
+	je inf_to_post_error
+	movl $0, %ebx
+	pop %ebx
+	dec %eax
+	cmpb $'(', %bl
+	je inf_to_post_core
+	movb $' ', (%edx)
+	inc %edx
+	movb %bl, (%edx)
+	inc %edx
+	jmp inf_to_post_rp
+	
+	
 inf_to_post_op:
 	cmpl $0, %eax
 	je inf_to_post_op_end
 	movl $0, %ebx
 	pop %ebx
+	cmpb $'(', %bl
+	je inf_to_post_op_lp
 	cmpb $'+', (%ecx)
 	je inf_to_post_op_pop
 	cmpb $'-', (%ecx)
@@ -165,6 +192,17 @@ inf_to_post_op:
 	je inf_to_post_op_p2
 	cmpb $'/', (%ecx)
 	je inf_to_post_op_p2
+
+inf_to_post_op_lp:
+	push %ebx
+	movl $0, %ebx
+	movb (%ecx), %bl
+	push %ebx
+	movb $' ', (%edx)
+	inc %edx
+	inc %ecx
+	inc %eax
+	jmp inf_to_post_core
 
 inf_to_post_op_p2:
 	cmpb $'*', %bl
