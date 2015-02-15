@@ -1,6 +1,6 @@
 .data
 str3:
-	.rept 255
+	.rept 512
 	.byte 0
 	.endr
 str_in:	
@@ -19,6 +19,12 @@ main:
 	push $str3
 	push $str_in
 	call inf_to_post
+#	push $str3
+#	call my_strlen
+#	push %eax
+#	push $str3
+#	call afficher
+#	call exit
 	jmp split_init
 	
 split_init:
@@ -129,8 +135,6 @@ inf_to_post_output:
 	movb (%ecx), %al
 	movb %al, (%edx)
 	pop %eax
-	inc %edx
-	movb $' ', (%edx)
 	inc %ecx
 	inc %edx
 	jmp inf_to_post_core
@@ -145,7 +149,7 @@ inf_to_post_notnb:
 	cmpb $'/', (%ecx)
 	je inf_to_post_op
 	cmpb $' ', (%ecx)
-	je inf_to_post_space
+	je inf_to_post_output
 	jmp inf_to_post_error
 
 inf_to_post_op:
@@ -171,6 +175,8 @@ inf_to_post_op_p2:
 	jmp inf_to_post_op_end
 
 inf_to_post_op_pop:
+	movb $' ', (%edx)
+	inc %edx
 	movb %bl, (%edx)
 	dec %eax
 	inc %edx
@@ -179,10 +185,12 @@ inf_to_post_op_pop:
 	jmp inf_to_post_op
 
 inf_to_post_op_end:
+	movb $' ', (%edx)
 	movl $0, %ebx
 	movb (%ecx), %bl
 	push %ebx
 	inc %ecx
+	inc %edx
 	inc %eax
 	jmp inf_to_post_core
 
@@ -196,6 +204,8 @@ inf_to_post_error:
 inf_to_post_end:
 	cmpl $0, %eax
 	je inf_to_post_exit
+	movb $' ', (%edx)
+	inc %edx
 	movl $0, %ebx
 	pop %ebx
 	movb %bl, (%edx)
