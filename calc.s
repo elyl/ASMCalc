@@ -1,15 +1,29 @@
+#LHEUREUX Axel
 .data
+#Chaine convertie en postfixee
 str3:
 	.rept 512
 	.byte 0
 	.endr
+#Chaine d'entree lue au clavier	
 str_in:	
 	.rept 255
 	.byte 0
 	.endr
+#Sert a memoriser le nombre d'elements dans la pile
 stack:
 	.long 0
+#Sert a memoriser l'emplacement dans la chaine 	
 ptr:
+	.long 0
+#Fichier d'entree
+file_in:
+	.ascii "in.txt"
+#Fichier de sortie
+file_out:
+	.ascii "out.txt"
+#Fichier actuellement ouvert
+fd:
 	.long 0
 .text
 .globl main
@@ -19,12 +33,6 @@ main:
 	push $str3
 	push $str_in
 	call inf_to_post
-#	push $str3
-#	call my_strlen
-#	push %eax
-#	push $str3
-#	call afficher
-#	call exit
 	jmp split_init
 	
 split_init:
@@ -110,6 +118,7 @@ end:
 	call afficher
 	call exit
 
+#Converti un calcul en notation infixee vers une notation postfixee	
 .type inf_to_post, @function
 inf_to_post:
 	push %ebp
@@ -256,7 +265,8 @@ inf_to_post_exit:
 	movl %ebp, %esp
 	pop %ebp
 	ret
-	
+
+#Converti un nombre en chaine de caracteres pour  pouvoir l'afficher
 .type itoa, @function
 itoa:
 	push %ebp
@@ -308,7 +318,8 @@ itoa_end:
 	movl %ebp, %esp
 	pop %ebp
 	ret
-	
+
+#Converti une chaine de caracteres en nombre pour effectuer des calculs	
 .type matoi, @function
 matoi:
 	push %ebp
@@ -367,7 +378,8 @@ matoi_end:
 	movl %ebp, %esp
 	pop %ebp
 	ret
-	
+
+#Effectue un calcul
 .type do_op, @function
 do_op:	
 	push %ebp
@@ -413,12 +425,14 @@ do_op_end:
 	pop %ebp
 	ret
 
+#Quitte le programme	
 .type exit, @function
 exit:
 	movl $1, %eax
 	movl $0, %ebx
 	int $0x80
-	
+
+#Affiche une chaine de caracteres sur l'entree standard
 .type afficher, @function
 afficher:
 	push %ebp
@@ -435,6 +449,7 @@ afficher:
 	pop %ebp
 	ret
 
+#Lit une chaine de caracteres au clavier
 .type saisir, @function
 saisir:
 	push %ebp
@@ -449,7 +464,8 @@ saisir:
 	movl %ebp, %esp
 	pop %ebp
 	ret
-	
+
+#Calcule la longueur d'une chaine
 .type my_strlen, @function
 my_strlen:
 	push %ebp
