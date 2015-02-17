@@ -487,4 +487,70 @@ my_strlen_end:
 	movl %ebp, %esp
 	pop %ebp
 	ret
+
+#Ouvre un fichier
+.type mopen, @function
+mopen:
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl $5, %eax
+	movl (%ebp), %ebx
+	addl $4, %ebp
+	movl (%ebp), %ecx
+	movl $0, %edx
+	int $0x80
+	subl $12, %ebp
+	movl %ebp, %esp
+	pop %ebp
+	ret
+
+#Ferme un fichier
+.type mclose, @function
+mclose:
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl $6, %eax
+	movl (%ebp), %ebx
+	int $0x80
+	subl $0x80, %ebp
+	movl %ebp, %esp
+	pop %ebp
+	ret
+
+#Lit le contenu d'un fichier
+.type lire_fichier, @function
+lire_fichier:
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl $3, %eax
+	movl (%ebp), %ebx
+	addl $4, %ebp
+	movl (%ebp), %ecx
+	addl $4, %ebp
+	movl (%ebp), %edx
+	int $0x80
+	subl $16, %ebp
+	movl %ebp, %esp
+	pop %ebp
+	ret
+
+.type ecrire_fichier, @function
+ecrire_fichier:
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl $4, %eax
+	movl (%ebp), %ebx
+	addl $4, %ebp
+	movl (%ebp), %ecx
+	addl $4, %ebp
+	movl (%ebp), %edx
+	int $0x80
+	subl $16, %ebp
+	movl %ebp, %esp
+	pop %ebp
+	ret
 	
