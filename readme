@@ -1,0 +1,11 @@
+LHEUREUX Axel
+
+Ce programme demande, une fois lance, une chaine de caractere representant une suite d'operations sous forme infixee.
+
+Sont geres:
+Les priorites operatoires
+Les parentheses
+La notation infixe
+
+Les fonctions permettant d'ouvrir un fichier, de le fermer, d'y lire et d'y ecrire sont ecrites, fonctionnent mais ne sont pas appellees au sein de ce programme.
+Pour une raison inconnue je ne suis pas parvenu a ouvrir correctement un fichier dans ce programme.
