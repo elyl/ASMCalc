@@ -6,19 +6,35 @@ nb2:
 len:
 	.long 0
 str_out:
-	.ascii "%d\n"
+	.ascii "%c\n"
 str:
-	.ascii "/"
+	.ascii "4 4\n"
+stack:
+	.long 0
+ptr:
+	.long 4
 .text
 .globl main
 main:
 	push $str
 	push $4
 	push $1
-	call do_op
+	call split
+#	call do_op
 	call afficher
 	call exit
 
+.type matoi, @function
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl (%ebp), %eax
+	push %eax
+	call atoi
+	subl $8, %ebp
+	movl %ebp, %esp
+	ret
+	
 .type do_op, @function
 do_op:	
 	push %ebp
@@ -64,6 +80,45 @@ do_op_end:
 	pop %ebp
 	ret
 
+.type split, @function
+split:
+	push %ebp
+	movl %esp, %ebp
+	movl $0, %edx
+	movl $str, %ecx
+	#addl ptr, %ecx
+	jmp split_core
+
+split_core:
+	cmpb $' ', (%ecx)
+	je split_space
+	cmpb $'\n', (%ecx)
+	je split_ret
+	inc %ecx
+	inc %edx
+	jmp split_core
+
+split_ret:
+	cmpb $0, %eax
+	je split_end
+	jmp split_space
+	
+split_space:
+	movl stack, %eax
+	inc %eax
+	movl %eax, stack
+	decl %ecx
+	movb (%ecx), %eax
+	movl ptr, %ecx
+	addl %ecx, %edx
+	movl %ecx, ptr
+	jmp split_end
+	
+split_end:	
+	movl %ebp, %esp
+	pop %ebp
+	ret
+	
 .type exit, @function
 exit:
 	movl $1, %eax
