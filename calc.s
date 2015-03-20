@@ -86,6 +86,9 @@ split_ok:
 	movl %edx, stack
 	movl %ecx, ptr
 	call do_op
+	pop %ecx
+	pop %ecx
+	pop %ecx
 	push %eax
 	movl stack, %edx
 	movl ptr, %ecx
