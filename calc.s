@@ -18,15 +18,6 @@ ptr:
 .text
 .globl main
 main:
-	push $142
-	push $str3	
-	call itoa
-	push $str3
-	call my_strlen
-	push %eax
-	push $str3
-	call afficher
-	call exit
 	jmp split_init
 	
 split_init:
@@ -98,7 +89,12 @@ split_ok:
 error:
 	call exit
 end:
-	pop %eax
+	push $str3
+	call itoa
+	push $str3
+	call my_strlen
+	push %eax
+	push $str3
 	call afficher
 	call exit
 
