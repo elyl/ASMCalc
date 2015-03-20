@@ -3,12 +3,10 @@ nb1:
 	.long 0
 nb2:
 	.long 0
-len:
-	.long 3
 str_out:
 	.ascii "%c\n"
 str:
-	.ascii "12+"
+	.ascii "5 + 1 +\n"
 stack:
 	.long 0
 ptr:
@@ -17,17 +15,17 @@ ptr:
 .globl main
 main:
 	push $str
-	push $4
-	push $1
+	call matoi
+	jmp end
 
 split_init:
 	movl $str, %ecx
 	movl stack, %edx
 	movl $0, %eax
+	movl $0, %ebx
 	
 split:
-	movl len, %ebx
-	cmpl %ebx, %edx
+	cmpb $'\n', (%ecx)
 	je end
 	cmpb $'0', (%ecx)
 	jl split_not_nb
@@ -54,33 +52,88 @@ split_not_nb:
 	jmp error
 
 split_op:
-	movb (%ecx), %al
-	push %eax
+	movb (%ecx), %bl
+	push %ebx
 	inc %edx
+	inc %ecx
 	cmpl $3, %edx
 	jl error
 	jmp split_ok
 
 split_ok:
 	movl %edx, stack
+	movl %ecx, ptr
 	call do_op
-	jmp end
+	push %eax
+	movl stack, %edx
+	movl ptr, %ecx
+	subl $2, %edx
+	jmp split
 
 error:
 	call exit
-end:	
+end:
+	pop %eax
 	call afficher
 	call exit
 
 .type matoi, @function
+matoi:
 	push %ebp
 	movl %esp, %ebp
 	addl $8, %ebp
-	movl (%ebp), %eax
-	push %eax
-	call atoi
+	movl (%ebp), %ecx	
+	movl $1, %ebx
+	jmp matoi_len
+
+matoi_len:
+	cmpb $' ', (%ecx)
+	je matoi_init
+	inc %ecx
+	imul $10, %ebx
+	jmp matoi_len
+
+matoi_init:
+	movl $0, %edx
+	movl %ebx, %eax
+	movl $10, %ecx
+	idiv %ecx
+	movl %eax, %ebx
+	movl $0, %eax
+	movl $0, %edx
+	movl (%ebp), %ecx
+	jmp matoi_core
+
+matoi_core:
+	movl $0, %eax
+	cmpb $' ', (%ecx)
+	je matoi_end
+	cmpb $'0', (%ecx)
+	jl matoi_error
+	cmpb $'9', (%ecx)
+	jg matoi_error
+	movb (%ecx), %al
+	subl $'0', %eax
+	imul %ebx, %eax
+	addl %eax, %edx
+	push %edx
+	movl %ebx, %eax
+	movl $0, %edx
+	movl $10, %ebx
+	idiv %ebx
+	movl %eax, %ebx
+	pop %edx
+	inc %ecx
+	jmp matoi_core
+
+matoi_error:
+	call exit
+
+matoi_end:
+	movl %edx, %eax
 	subl $8, %ebp
 	movl %ebp, %esp
+	pop %ebp
 	ret
 	
 .type do_op, @function
