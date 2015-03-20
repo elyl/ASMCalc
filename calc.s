@@ -136,7 +136,7 @@ itoa_init:
 	jmp itoa_core
 	
 itoa_core:
-	cmpl $0, %eax
+	cmpl $0, %ebx
 	je itoa_end
 	movl $0, %edx
 	idiv %ebx
