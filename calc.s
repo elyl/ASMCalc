@@ -4,9 +4,13 @@ nb1:
 nb2:
 	.long 0
 str_out:
-	.ascii "%d\n"
+	.ascii "%s\n"
 str:
 	.ascii "5 1 + 7 +\n"
+str3:
+	.rept 255
+	.byte 0
+	.endr
 stack:
 	.long 0
 ptr:
@@ -14,6 +18,15 @@ ptr:
 .text
 .globl main
 main:
+	push $142
+	push $str3	
+	call itoa
+	push $str3
+	call my_strlen
+	push %eax
+	push $str3
+	call afficher
+	call exit
 	jmp split_init
 	
 split_init:
@@ -89,6 +102,58 @@ end:
 	call afficher
 	call exit
 
+.type itoa, @function
+itoa:
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl (%ebp), %ecx
+	addl $4, %ebp
+	movl $1, %ebx
+	jmp itoa_max
+
+itoa_max:
+	movl (%ebp), %eax
+	movl $0, %edx
+	idiv %ebx
+	cmpl $0, %eax
+	je itoa_init
+	imul $10, %ebx
+	jmp itoa_max
+
+itoa_init:
+	movl %ebx, %eax
+	movl $10, %ebx
+	movl $0, %edx
+	idiv %ebx
+	movl %eax, %ebx
+	movl (%ebp), %eax
+	jmp itoa_core
+	
+itoa_core:
+	cmpl $0, %eax
+	je itoa_end
+	movl $0, %edx
+	idiv %ebx
+	addl $'0', %eax
+	movl %eax, (%ecx)
+	movl %edx, %eax
+	inc %ecx
+	push %eax
+	movl $0, %edx
+	movl %ebx, %eax
+	movl $10, %ebx
+	idiv %ebx
+	movl %eax, %ebx
+	pop %eax
+	jmp itoa_core
+
+itoa_end:
+	subl $12, %ebp
+	movl %ebp, %esp
+	pop %ebp
+	ret
+	
 .type matoi, @function
 matoi:
 	push %ebp
@@ -203,9 +268,36 @@ exit:
 afficher:
 	push %ebp
 	movl %esp, %ebp
-	push %eax
-	push $str_out
-	call printf
+	addl $8, %ebp
+	movl (%ebp), %ecx
+	addl $4, %ebp
+	movl (%ebp), %edx
+	movl $4, %eax
+	movl $1, %ebx
+	int $0x80
+	subl $12, %ebp
+	movl %ebp, %esp
+	pop %ebp
+	ret
+
+.type my_strlen, @function
+my_strlen:
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl (%ebp), %ecx
+	movl $0, %eax
+	jmp my_strlen_core
+
+my_strlen_core:
+	cmpb $0, (%ecx)
+	je my_strlen_end
+	inc %ecx
+	inc %eax
+	jmp my_strlen_core
+
+my_strlen_end:
+	subl $8, %ebp
 	movl %ebp, %esp
 	pop %ebp
 	ret
