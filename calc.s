@@ -4,23 +4,71 @@ nb1:
 nb2:
 	.long 0
 len:
-	.long 0
+	.long 3
 str_out:
 	.ascii "%c\n"
 str:
-	.ascii "4 4\n"
+	.ascii "12+"
 stack:
 	.long 0
 ptr:
-	.long 4
+	.long 0
 .text
 .globl main
 main:
 	push $str
 	push $4
 	push $1
-	call split
-#	call do_op
+
+split_init:
+	movl $str, %ecx
+	movl stack, %edx
+	movl $0, %eax
+	
+split:
+	movl len, %ebx
+	cmpl %ebx, %edx
+	je end
+	cmpb $'0', (%ecx)
+	jl split_not_nb
+	cmpb $'9', (%ecx)
+	jg split_not_nb
+	jmp split_nb
+
+split_nb:
+	movb (%ecx), %al
+	push %eax
+	inc %edx
+	inc %ecx
+	jmp split
+
+split_not_nb:
+	cmpb $'+', (%ecx)
+	je split_op
+	cmpb $'-', (%ecx)
+	je split_op
+	cmpb $'*', (%ecx)
+	je split_op
+	cmpb $'/', (%ecx)
+	je split_op
+	jmp error
+
+split_op:
+	movb (%ecx), %al
+	push %eax
+	inc %edx
+	cmpl $3, %edx
+	jl error
+	jmp split_ok
+
+split_ok:
+	movl %edx, stack
+	call do_op
+	jmp end
+
+error:
+	call exit
+end:	
 	call afficher
 	call exit
 
@@ -40,21 +88,21 @@ do_op:
 	push %ebp
 	movl %esp, %ebp
 	addl $8, %ebp
-	movl (%ebp), %eax
+	movl (%ebp), %ecx
 	addl $4, %ebp
 	movl (%ebp), %ebx
 	addl $4, %ebp
-	movl (%ebp), %ecx
+	movl (%ebp), %eax
 	jmp do_op_switch
 
 do_op_switch:	
-	cmpb $'+', (%ecx)
+	cmpb $'+', %cl
 	je do_op_add
-	cmpb $'-', (%ecx)
+	cmpb $'-', %cl
 	je do_op_sub
-	cmpb $'*', (%ecx)
+	cmpb $'*', %cl
 	je do_op_mult
-	cmpb $'/', (%ecx)
+	cmpb $'/', %cl
 	je do_op_div
 
 do_op_add:
@@ -80,45 +128,6 @@ do_op_end:
 	pop %ebp
 	ret
 
-.type split, @function
-split:
-	push %ebp
-	movl %esp, %ebp
-	movl $0, %edx
-	movl $str, %ecx
-	#addl ptr, %ecx
-	jmp split_core
-
-split_core:
-	cmpb $' ', (%ecx)
-	je split_space
-	cmpb $'\n', (%ecx)
-	je split_ret
-	inc %ecx
-	inc %edx
-	jmp split_core
-
-split_ret:
-	cmpb $0, %eax
-	je split_end
-	jmp split_space
-	
-split_space:
-	movl stack, %eax
-	inc %eax
-	movl %eax, stack
-	decl %ecx
-	movb (%ecx), %eax
-	movl ptr, %ecx
-	addl %ecx, %edx
-	movl %ecx, ptr
-	jmp split_end
-	
-split_end:	
-	movl %ebp, %esp
-	pop %ebp
-	ret
-	
 .type exit, @function
 exit:
 	movl $1, %eax
