@@ -4,9 +4,9 @@ nb1:
 nb2:
 	.long 0
 str_out:
-	.ascii "%c\n"
+	.ascii "%d\n"
 str:
-	.ascii "5 + 1 +\n"
+	.ascii "5 1 + 7 +\n"
 stack:
 	.long 0
 ptr:
@@ -14,10 +14,8 @@ ptr:
 .text
 .globl main
 main:
-	push $str
-	call matoi
-	jmp end
-
+	jmp split_init
+	
 split_init:
 	movl $str, %ecx
 	movl stack, %edx
@@ -34,7 +32,11 @@ split:
 	jmp split_nb
 
 split_nb:
-	movb (%ecx), %al
+	push %edx
+	push %ecx
+	call matoi
+	pop %edx
+	pop %edx
 	push %eax
 	inc %edx
 	inc %ecx
@@ -52,9 +54,10 @@ split_not_nb:
 	jmp error
 
 split_op:
-	movb (%ecx), %bl
-	push %ebx
+	movb (%ecx), %al
+	push %eax
 	inc %edx
+	inc %ecx
 	inc %ecx
 	cmpl $3, %edx
 	jl error
