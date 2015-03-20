@@ -1,12 +1,4 @@
 .data
-nb1:
-	.long 0
-nb2:
-	.long 0
-str_out:
-	.ascii "%s\n"
-str:
-	.ascii "5 1 + 7 +\n"
 str3:
 	.rept 255
 	.byte 0
@@ -24,16 +16,19 @@ ptr:
 main:
 	push $str_in
 	call saisir
+	push $str3
+	push $str_in
+	call inf_to_post
 	jmp split_init
 	
 split_init:
-	movl $str_in, %ecx
+	movl $str3, %ecx
 	movl stack, %edx
 	movl $0, %eax
 	movl $0, %ebx
 	
 split:
-	cmpb $'\n', (%ecx)
+	cmpb $0, (%ecx)
 	je end
 	cmpb $'0', (%ecx)
 	jl split_not_nb
@@ -107,6 +102,110 @@ end:
 	call afficher
 	call exit
 
+.type inf_to_post, @function
+inf_to_post:
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl (%ebp), %ecx
+	addl $4, %ebp
+	movl (%ebp), %edx
+	movl $0, %eax
+	movl $0, %ebx
+	jmp inf_to_post_core
+
+inf_to_post_core:
+	cmpb $'\n', (%ecx)
+	je inf_to_post_end
+	cmpb $'0', (%ecx)
+	jl inf_to_post_notnb
+	cmpb $'9', (%ecx)
+	jg inf_to_post_error
+	jmp inf_to_post_output
+
+inf_to_post_output:
+	push %eax
+	movl $0, %eax
+	movb (%ecx), %al
+	movb %al, (%edx)
+	pop %eax
+	inc %edx
+	movb $' ', (%edx)
+	inc %ecx
+	inc %edx
+	jmp inf_to_post_core
+
+inf_to_post_notnb:
+	cmpb $'+', (%ecx)
+	je inf_to_post_op
+	cmpb $'-', (%ecx)
+	je inf_to_post_op
+	cmpb $'*', (%ecx)
+	je inf_to_post_op
+	cmpb $'/', (%ecx)
+	je inf_to_post_op
+	cmpb $' ', (%ecx)
+	je inf_to_post_space
+	jmp inf_to_post_error
+
+inf_to_post_op:
+	cmpl $0, %eax
+	je inf_to_post_op_end
+	movl $0, %ebx
+	pop %ebx
+	cmpb $'+', %bl
+	je inf_to_post_op_pop
+	cmpb $'-', %bl
+	je inf_to_post_op_pop
+	cmpb $'*', %bl
+	je inf_to_post_op_p2
+	cmpb $'/', %bl
+	je inf_to_post_op_p2
+
+inf_to_post_op_p2:
+	cmpb $'*', (%ecx)
+	je inf_to_post_op_pop
+	cmpb $'/', (%ecx)
+	je inf_to_post_op_pop
+	jmp inf_to_post_op_end
+
+inf_to_post_op_pop:
+	movb %bl, (%edx)
+	dec %eax
+	inc %edx
+	movb $' ', (%edx)
+	inc %edx
+	jmp inf_to_post_op
+
+inf_to_post_op_end:
+	push (%ecx)
+	inc %ecx
+	inc %eax
+	jmp inf_to_post_core
+
+inf_to_post_space:
+	inc %ecx
+	jmp inf_to_post_core
+
+inf_to_post_error:
+	call exit
+	
+inf_to_post_end:
+	cmpl $0, %eax
+	je inf_to_post_exit
+	movl $0, %ebx
+	pop %ebx
+	movb %bl, (%edx)
+	inc %edx
+	dec %eax
+	jmp inf_to_post_end
+	
+inf_to_post_exit:	
+	subl $12, %ebp
+	movl %ebp, %esp
+	pop %ebp
+	ret
+	
 .type itoa, @function
 itoa:
 	push %ebp
