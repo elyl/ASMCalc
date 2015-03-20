@@ -153,20 +153,21 @@ inf_to_post_op:
 	je inf_to_post_op_end
 	movl $0, %ebx
 	pop %ebx
-	cmpb $'+', %bl
+	cmpb $'+', (%ecx)
 	je inf_to_post_op_pop
-	cmpb $'-', %bl
+	cmpb $'-', (%ecx)
 	je inf_to_post_op_pop
-	cmpb $'*', %bl
+	cmpb $'*', (%ecx)
 	je inf_to_post_op_p2
-	cmpb $'/', %bl
+	cmpb $'/', (%ecx)
 	je inf_to_post_op_p2
 
 inf_to_post_op_p2:
-	cmpb $'*', (%ecx)
+	cmpb $'*', %bl
 	je inf_to_post_op_pop
-	cmpb $'/', (%ecx)
+	cmpb $'/', %bl
 	je inf_to_post_op_pop
+	push %ebx
 	jmp inf_to_post_op_end
 
 inf_to_post_op_pop:
@@ -178,7 +179,9 @@ inf_to_post_op_pop:
 	jmp inf_to_post_op
 
 inf_to_post_op_end:
-	push (%ecx)
+	movl $0, %ebx
+	movb (%ecx), %bl
+	push %ebx
 	inc %ecx
 	inc %eax
 	jmp inf_to_post_core
