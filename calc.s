@@ -51,13 +51,22 @@ split_not_nb:
 	je split_op
 	cmpb $'/', (%ecx)
 	je split_op
+	cmpb $' ', (%ecx)
+	je split_espace
 	jmp error
 
+split_espace:
+	cmpb $'\n', (%ecx)
+	je end
+	cmpb $' ', (%ecx)
+	jne split
+	inc %ecx
+	jmp split_espace
+	
 split_op:
 	movb (%ecx), %al
 	push %eax
 	inc %edx
-	inc %ecx
 	inc %ecx
 	cmpl $3, %edx
 	jl error
