@@ -11,6 +11,10 @@ str3:
 	.rept 255
 	.byte 0
 	.endr
+str_in:	
+	.rept 255
+	.byte 0
+	.endr
 stack:
 	.long 0
 ptr:
@@ -18,10 +22,12 @@ ptr:
 .text
 .globl main
 main:
+	push $str_in
+	call saisir
 	jmp split_init
 	
 split_init:
-	movl $str, %ecx
+	movl $str_in, %ecx
 	movl stack, %edx
 	movl $0, %eax
 	movl $0, %ebx
@@ -276,6 +282,21 @@ afficher:
 	pop %ebp
 	ret
 
+.type saisir, @function
+saisir:
+	push %ebp
+	movl %esp, %ebp
+	addl $8, %ebp
+	movl (%ebp), %ecx
+	movl $3, %eax
+	movl $0, %ebx
+	movl $255, %edx
+	int $0x80
+	subl $8, %ebp
+	movl %ebp, %esp
+	pop %ebp
+	ret
+	
 .type my_strlen, @function
 my_strlen:
 	push %ebp
